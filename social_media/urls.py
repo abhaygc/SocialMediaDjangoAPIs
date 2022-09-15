@@ -15,7 +15,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from social_media import views
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/register/', views.registerUser),
+    path('api/authenticate/', views.loginUser),
+    path('api/user/', views.userDetails),
+    path('api/follow/<int:id>/', views.follow),
+    path('api/unfollow/<int:id>/', views.unfollow),
+    path('api/posts/', views.createPost),
+    path('api/posts/<int:id>/', views.deletePost),
+    path('api/like/<int:id>/', views.postLike),
+    path('api/unlike/<int:id>/', views.postUnlike),
+    path('api/comment/<int:id>/', views.addComment),
+    path('api/all_posts/', views.getAllPosts),
 ]
