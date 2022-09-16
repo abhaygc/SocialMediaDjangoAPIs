@@ -1,16 +1,14 @@
-import re
-import stat
-from urllib import response
 from .models import Users, Connections, Posts, Comments, Likes
 from .serializers import UsersSerializer, ConnectionsSerializer, PostsSerializer, CommentsSerializer, LikesSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from social_media import serializers
+from .settings import SECRET_KEY
 import datetime
 import jwt
 
-SECRET_KEY = "secretKeyOfServer+=="
+# SECRET_KEY = "secretKeyOfServer+=="
 ALGORITHM = "HS256"
 
 def authenticateUser(token):
