@@ -254,6 +254,13 @@ def addComment(request, id):
     if comment is None or comment.strip() == "":
         return Response({"message": "Please enter a valid commment"}, status=422)
 
+    try:
+        toCommentOnPost = Posts.objects.get(id=id)
+    except Posts.DoesNotExist:
+        return Response({"message":"Post not found"}, status=404)
+    except:
+        return Response({"message":"Some error occured"}, status=404)
+
     serializer = serializers.CommentsSerializer(data={'text':comment,"post":id,"user":user.id})
     
     if serializer.is_valid():
