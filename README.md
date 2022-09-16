@@ -19,3 +19,13 @@ python manage.py test social_media
 
 Run:
 python manage.py runserver
+
+## CREATE USER
+POST /api/register/ 
+  INPUT - NAME, EMAIL, PASSWORD
+  RETURN - ID, NAME, EMAIL
+## LOGIN/AUTHENTICATE
+POST /api/authenticate/
+  INPUT - EMAIL, PASSWORD
+  RETURN - jwt 
+
