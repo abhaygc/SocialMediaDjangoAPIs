@@ -445,8 +445,8 @@ class TestListSocialMediaAPI(APITestCase):
         response = self.client.get(reverse("allPosts"))
         jsonResponse = json.loads(response.content)
 
-        print(postsSerialized.data)
-        print(jsonResponse["posts"])
+        # print(postsSerialized.data)
+        # print(jsonResponse["posts"])
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(postsSerialized.data), len(jsonResponse["posts"]))
@@ -454,6 +454,7 @@ class TestListSocialMediaAPI(APITestCase):
         for (index, post) in enumerate(postsSerialized.data):
             self.assertEqual(post["id"], jsonResponse["posts"][index]["id"])
             self.assertEqual(post["created_at"], jsonResponse["posts"][index]["created_at"])
+            #check no. of likes and comments as well here
 
 
         
