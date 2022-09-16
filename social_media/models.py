@@ -15,6 +15,7 @@ class Users(models.Model):
 
     def checkPassword(self, password):
         return self.password == hashlib.sha256(password.encode()).hexdigest()
+    
 
 class Connections(models.Model):
     following = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='following_user')

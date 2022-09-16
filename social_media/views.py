@@ -167,8 +167,9 @@ def deletePost(request, id):
             return Response({"message" : "Post does not exist"}, status=404)
         except:
             return Response({"message" : "Some error occured"}, status=404) 
-
-        if user.id != post.author:
+        # print(user.id)
+        # print(post.author.id)
+        if user.id != post.author.id:
             return Response({"message": "Unauthorized to delete this post"}, status=401)
         
         post.delete()

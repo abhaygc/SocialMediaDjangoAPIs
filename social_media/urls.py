@@ -19,7 +19,7 @@ from social_media import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/register/', views.registerUser, name="register"),
-    path('api/authenticate/', views.loginUser, name="register"),
+    path('api/authenticate/', views.loginUser, name="login"),
     path('api/user/', views.userDetails, name="user"),
     path('api/follow/<int:id>/', views.follow, name="follow"),
     path('api/unfollow/<int:id>/', views.unfollow, name="unfollow"),
