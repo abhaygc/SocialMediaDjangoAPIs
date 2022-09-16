@@ -134,14 +134,22 @@ def createPost(request):
     
     user = Users.objects.get(id=payload['id'])
 
-    title = request.data["title"]
-    description = request.data["description"]
-
-    if title is None or title.strip() == "":
-        return Response({"message": "Please enter a valid Title"}, status=422)
-
-    if description is None or description.strip() == "":
-        return Response({"message": "Please enter a valid Description"}, status=422)
+    
+    
+    try:
+        title = request.data["title"]
+    except:
+        title = None
+    finally:
+        if title is None or title.strip() == "":
+            return Response({"message": "Please enter a valid Title"}, status=422)
+    try:
+        description = request.data["description"]
+    except:
+        description = None
+    finally:
+        if description is None or description.strip() == "":
+            return Response({"message": "Please enter a valid Description"}, status=422)
 
     serializer = serializers.PostsSerializer(data={'title':title,'desc':description,"created_at":datetime.datetime.utcnow(),"author":user.id})
     
