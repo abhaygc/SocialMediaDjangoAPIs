@@ -78,10 +78,10 @@ def follow(request, id):
     except:
         return Response({"message":"Some error occured"}, status=404)
     if loggedUser == toFollowUser:
-        return Response({"message":"cannot follow yourself"}, status=304)
+        return Response(status=304)
     connection, created = Connections.objects.get_or_create(following=toFollowUser, follower = loggedUser)
     if not created:
-        return Response({"message" : "Connection already exist"}, status=304)
+        return Response(status=304)
     
     return Response({"message" : "Connection added"}, status=200)
     
@@ -220,7 +220,7 @@ def postLike(request, id):
     
     postLike, liked = Likes.objects.get_or_create(post=toLikePost, user = loggedUser)
     if not liked:
-        return Response({"message" : "Post already liked"}, status=304)
+        return Response(status=304)
     
     return Response({"message" : "Post liked"}, status=200)
     

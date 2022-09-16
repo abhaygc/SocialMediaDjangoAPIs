@@ -112,7 +112,7 @@ class TestListSocialMediaAPI(APITestCase):
         self.assertEqual(followersCount, jsonResponse["followersCount"])
         self.assertEqual(followingCount, jsonResponse["followingCount"])
 
-    
+    ##  POST CREATION
     def test_successful_post_creation(self):
         postsTableCountBefore = Posts.objects.count()
         self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
@@ -138,6 +138,19 @@ class TestListSocialMediaAPI(APITestCase):
         postsTableCountAfter = Posts.objects.count()
         self.assertEqual(postsTableCountBefore, postsTableCountAfter)
 
+    def test_unsuccessful_post_creation_with_title_empty(self):
+        postsTableCountBefore = Posts.objects.count()
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        data = {"title":"","description" : "description For the Post"}
+        response = self.client.post(reverse("createPost"), data)
+        jsonResponse = json.loads(response.content)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual("Please enter a valid Title", jsonResponse["message"])
+        
+        postsTableCountAfter = Posts.objects.count()
+        self.assertEqual(postsTableCountBefore, postsTableCountAfter)
+
+
     def test_unsuccessful_post_creation_with_description_missing(self):
         postsTableCountBefore = Posts.objects.count()
         self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
@@ -148,4 +161,125 @@ class TestListSocialMediaAPI(APITestCase):
         self.assertEqual("Please enter a valid Description", jsonResponse["message"])
         postsTableCountAfter = Posts.objects.count()
         self.assertEqual(postsTableCountBefore, postsTableCountAfter)
+
+    def test_unsuccessful_post_creation_with_description_empty(self):
+        postsTableCountBefore = Posts.objects.count()
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        data = {"title" : "description empty", "description": ""}
+        response = self.client.post(reverse("createPost"), data)
+        jsonResponse = json.loads(response.content)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual("Please enter a valid Description", jsonResponse["message"])
+        postsTableCountAfter = Posts.objects.count()
+        self.assertEqual(postsTableCountBefore, postsTableCountAfter)
+
+    ## POST DELETION
+    def test_successful_post_deletion(self):
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        data = {"title":"Title for post", "description" : "description For the Post"}
+        responseForPostCreated = self.client.post(reverse("createPost"), data)
+        jsonResponseForPostCreated = json.loads(responseForPostCreated.content)
+
+        postsTableCountBefore = Posts.objects.count()
         
+        response = self.client.delete(reverse("getDeletePost", args = (jsonResponseForPostCreated["id"],)))
+        jsonResponse = json.loads(response.content)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual("Post deleted", jsonResponse["message"])
+        
+        postsTableCountAfter = Posts.objects.count()
+        self.assertEqual(postsTableCountBefore-1, postsTableCountAfter)
+
+    def test_unsuccessful_post_deletion_when_post_not_existing(self):
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        
+        postsTableCountBefore = Posts.objects.count()
+        
+        response = self.client.delete(reverse("getDeletePost", args = (1000,)))
+        jsonResponse = json.loads(response.content)
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual("Post does not exist", jsonResponse["message"])
+        
+        postsTableCountAfter = Posts.objects.count()
+        self.assertEqual(postsTableCountBefore, postsTableCountAfter)
+
+    def test_unsuccessful_post_deletion_not_authored_by_user(self):
+        self.client.post(reverse("login"), {"email":"t2@t.com", "password" : "t1000"})
+        data = {"title":"Title for post", "description" : "description For the Post"}
+        responseForPostCreated = self.client.post(reverse("createPost"), data)
+        jsonResponseForPostCreated = json.loads(responseForPostCreated.content)
+
+        postsTableCountBefore = Posts.objects.count()
+        
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        response = self.client.delete(reverse("getDeletePost", args = (jsonResponseForPostCreated["id"],)))
+        jsonResponse = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual("Unauthorized to delete this post", jsonResponse["message"])
+        
+        postsTableCountAfter = Posts.objects.count()
+        self.assertEqual(postsTableCountBefore, postsTableCountAfter)
+
+    ## LIKE
+    def test_successful_like(self):
+        self.client.post(reverse("login"), {"email":"t2@t.com", "password" : "t1000"})
+        data = {"title":"Title for post", "description" : "description For the Post"}
+        responseForPostCreated = self.client.post(reverse("createPost"), data)
+        jsonResponseForPostCreated = json.loads(responseForPostCreated.content)
+
+        likesForThePostBefore = Likes.objects.filter(post = jsonResponseForPostCreated["id"]).count()
+        
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        response = self.client.post(reverse("like", args = (jsonResponseForPostCreated["id"],)))
+        jsonResponse = json.loads(response.content)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual("Post liked", jsonResponse["message"])
+
+        likesForThePostAfter = Likes.objects.filter(post = jsonResponseForPostCreated["id"]).count()
+
+        self.assertEqual(likesForThePostBefore+1, likesForThePostAfter)
+
+    def test_unsuccessful_like_to_post_not_existing(self):
+        
+        likesTableCountBefore = Likes.objects.count()
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        response = self.client.post(reverse("like", args = (1000,)))
+        jsonResponse = json.loads(response.content)
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual("Post not found", jsonResponse["message"])
+
+        likesTableCountAfter = Likes.objects.count()
+
+        self.assertEqual(likesTableCountBefore, likesTableCountAfter)
+
+    def test_unsuccessful_like_for_already_liked_post(self):
+        self.client.post(reverse("login"), {"email":"t2@t.com", "password" : "t1000"})
+        data = {"title":"Title for post", "description" : "description For the Post"}
+        responseForPostCreated = self.client.post(reverse("createPost"), data)
+        jsonResponseForPostCreated = json.loads(responseForPostCreated.content)
+        
+        self.client.post(reverse("login"), {"email":"t1@t.com", "password" : "t1000"})
+        self.client.post(reverse("like", args = (jsonResponseForPostCreated["id"],)))
+        likesTableCountBefore = Likes.objects.count()
+        likesForThePostBefore = Likes.objects.filter(post = jsonResponseForPostCreated["id"]).count()
+
+        response = self.client.post(reverse("like", args = (jsonResponseForPostCreated["id"],)))
+        jsonResponse = json.loads(response.content)
+        
+        self.assertEqual(response.status_code, 304)
+        self.assertEqual("Post already liked", jsonResponse["message"])
+
+        likesTableCountAfter = Likes.objects.count()
+        likesForThePostAfter = Likes.objects.filter(post = jsonResponseForPostCreated["id"]).count()
+
+        self.assertEqual(likesTableCountBefore, likesTableCountAfter)
+        self.assertEqual(likesForThePostBefore, likesForThePostAfter)
+
+    ## UNLIKE
+    ## COMMENT
+    ## ALL POSTS    
