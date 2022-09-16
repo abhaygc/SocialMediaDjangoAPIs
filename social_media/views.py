@@ -258,10 +258,13 @@ def addComment(request, id):
     
     user = Users.objects.get(id=payload['id'])
 
-    comment = request.data["comment"]
-    
-    if comment is None or comment.strip() == "":
-        return Response({"message": "Please enter a valid commment"}, status=422)
+    try:
+        comment = request.data["comment"]
+    except:
+        comment = None
+    finally:
+        if comment is None or comment.strip() == "":
+            return Response({"message": "Please enter a valid commment"}, status=422)
 
     try:
         toCommentOnPost = Posts.objects.get(id=id)
